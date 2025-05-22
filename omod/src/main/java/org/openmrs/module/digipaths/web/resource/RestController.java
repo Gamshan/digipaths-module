@@ -13,6 +13,7 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletResponse;
 import java.util.*;
 
 @Controller
@@ -108,5 +109,35 @@ public class RestController extends MainResourceController {
 		response.put("flagged", false);
 		response.put("message", "Hba1c result is not old");
 		return response;
+	}
+	
+	@RequestMapping(value = "/list", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+	@ResponseStatus(HttpStatus.OK)
+	@ResponseBody
+	public List<Map<String,Object>> getDigipathsList(@RequestParam String patientUuid, HttpServletResponse response) {
+		DepartmentService departmentService = Context.getService(DepartmentService.class);
+		Order order = departmentService.getOrder(patientUuid);
+
+		Calendar calendar = Calendar.getInstance();
+		calendar.add(Calendar.YEAR, -1);
+		List<Map<String,Object>> list = new ArrayList<>();
+		Map<String,Object> map = new  HashMap<>();
+
+		if(order == null)
+			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+
+		if (order != null && order.getDateActivated().before(calendar.getTime())){
+			map.put("date", order.getDateActivated().toString());
+			map.put("title", "Hba1c result is old");
+			map.put("description","The HBa1C is one year old, Please repeat the test again");
+			list.add(map);
+		}else if(order != null && order.getDateActivated() != null){
+			map.put("date", order.getDateActivated().toString());
+			map.put("title", "Valid Hba1c result");
+			map.put("description","The HBa1C result is valid");
+			list.add(map);
+		}
+		
+		return list;
 	}
 }
