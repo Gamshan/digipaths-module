@@ -84,12 +84,12 @@ public class HibernateDepartmentDAO implements DepartmentDAO {
 	
 	@Override
 	public Order getOrder(String patientUuid) {
-		Order order = (Order) getCurrentSession()
+		return (Order) getCurrentSession()
 		        .createQuery(
-		            "from Order o where o.patient.uuid = :patientUuid and o.concept.uuid = :conceptUuid and o.dateActivated is not null order by o.dateActivated desc")
-		        .setParameter("patientUuid", patientUuid)
+		            "from Order o where o.patient.uuid = :patientUuid and o.concept.uuid = :conceptUuid and o.fulfillerStatus = :fulfillerStatus order by o.dateActivated desc")
+		        .setParameter("patientUuid", patientUuid).setParameter("fulfillerStatus", Order.FulfillerStatus.COMPLETED)
 		        .setParameter("conceptUuid", "21AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA").setMaxResults(1).uniqueResult();
-		return order;
+		
 	}
 	
 }
