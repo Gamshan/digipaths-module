@@ -1,11 +1,13 @@
 package org.openmrs.module.digipaths.api;
 
+import org.openmrs.Obs;
 import org.openmrs.Order;
 import org.openmrs.api.OpenmrsService;
 import org.openmrs.module.digipaths.Department;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * The service for managing departments.
@@ -45,5 +47,9 @@ public interface DepartmentService extends OpenmrsService {
 	 */
 	void purgeDepartment(Department department);
 	
-	Order getOrder(String patientUuid);
+	Order getOrderByPatientUuidAndConceptUuid(String patientUuid, String conceptUuid);
+	
+	List<Obs> getObsByPatientUuidAndConceptUuid(String patientUuid, String conceptUuid, Integer maxResults);
+	
+	boolean getConditionByPatientUuidAndConceptId(String patientUuid, Integer conceptUuid);
 }
