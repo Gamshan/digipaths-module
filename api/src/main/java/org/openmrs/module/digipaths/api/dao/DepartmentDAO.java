@@ -1,5 +1,6 @@
 package org.openmrs.module.digipaths.api.dao;
 
+import org.openmrs.Obs;
 import org.openmrs.Order;
 import org.openmrs.module.digipaths.Department;
 
@@ -30,5 +31,9 @@ public interface DepartmentDAO {
 	//	 */
 	void purgeDepartment(Department department);
 	
-	Order getOrder(String patientUuid);
+	Order getOrderByPatientUuidAndConceptUuid(String patientUuid, String conceptUuid);
+	
+	List<Obs> getObsByPatientUuidAndConceptUuid(String patientUuid, String conceptUuid, Integer maxResults);
+	
+	boolean getConditionByPatientUuidAndConceptId(String patientUuid, Integer conceptUuid);
 }

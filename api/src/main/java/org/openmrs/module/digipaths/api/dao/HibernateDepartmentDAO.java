@@ -4,10 +4,14 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.openmrs.ConditionClinicalStatus;
+import org.openmrs.Obs;
 import org.openmrs.Order;
 import org.openmrs.module.digipaths.Department;
 
 import java.lang.reflect.Method;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 ///**
@@ -83,12 +87,33 @@ public class HibernateDepartmentDAO implements DepartmentDAO {
 	}
 	
 	@Override
-	public Order getOrder(String patientUuid) {
+	public Order getOrderByPatientUuidAndConceptUuid(String patientUuid, String conceptUuid) {
 		return (Order) getCurrentSession()
 		        .createQuery(
 		            "from Order o where o.patient.uuid = :patientUuid and o.concept.uuid = :conceptUuid and o.fulfillerStatus = :fulfillerStatus order by o.dateActivated desc")
 		        .setParameter("patientUuid", patientUuid).setParameter("fulfillerStatus", Order.FulfillerStatus.COMPLETED)
-		        .setParameter("conceptUuid", "21AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA").setMaxResults(1).uniqueResult();
+		        .setParameter("conceptUuid", conceptUuid).setMaxResults(1).uniqueResult();
+		
+	}
+	
+	@Override
+	@SuppressWarnings("unchecked")
+	public List<Obs> getObsByPatientUuidAndConceptUuid(String patientUuid, String conceptUuid, Integer maxResults) {
+		return (List<Obs>) getCurrentSession()
+		        .createQuery(
+		            "from Obs o where o.person.uuid = :personUuid and o.concept.uuid = :conceptUuid order by o.obsDatetime desc")
+		        .setParameter("personUuid", patientUuid).setParameter("conceptUuid", conceptUuid)
+		        .setMaxResults(maxResults != null ? maxResults : 1).list();
+	}
+	
+	@Override
+	public boolean getConditionByPatientUuidAndConceptId(String patientUuid, Integer conceptId) {
+		Long count = (Long) getCurrentSession()
+		        .createQuery(
+		            "select count(o) from Condition o where o.patient.uuid = :patientUuid and o.clinicalStatus = :clinicalStatus and o.condition.coded.conceptId = :conceptId order by o.dateCreated desc")
+		        .setParameter("patientUuid", patientUuid).setParameter("clinicalStatus", ConditionClinicalStatus.ACTIVE)
+		        .setParameter("conceptId", conceptId).uniqueResult();
+		return count > 0;
 		
 	}
 	
