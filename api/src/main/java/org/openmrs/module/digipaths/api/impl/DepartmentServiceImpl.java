@@ -78,7 +78,12 @@ public class DepartmentServiceImpl extends BaseOpenmrsService implements Departm
 	}
 	
 	@Override
-	public boolean getConditionByPatientUuidAndConceptId(String patientUuid, Integer conceptUuid) {
-		return dao.getConditionByPatientUuidAndConceptId(patientUuid, conceptUuid);
+	public boolean getConditionByPatientUuidAndConceptUuid(String patientUuid, String conceptUuid) {
+		return dao.getConditionByPatientUuidAndConceptUuid(patientUuid, conceptUuid);
+	}
+	
+	@Override
+	public boolean existOrderByPatientUuidAndConceptId(String patientUuid, Integer conceptUuid) {
+		return dao.existOrderByPatientUuidAndConceptId(patientUuid, conceptUuid);
 	}
 }

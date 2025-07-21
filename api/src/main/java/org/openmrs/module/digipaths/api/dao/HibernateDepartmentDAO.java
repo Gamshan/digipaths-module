@@ -107,11 +107,22 @@ public class HibernateDepartmentDAO implements DepartmentDAO {
 	}
 	
 	@Override
-	public boolean getConditionByPatientUuidAndConceptId(String patientUuid, Integer conceptId) {
+	public boolean getConditionByPatientUuidAndConceptUuid(String patientUuid, String conceptId) {
 		Long count = (Long) getCurrentSession()
 		        .createQuery(
-		            "select count(o) from Condition o where o.patient.uuid = :patientUuid and o.clinicalStatus = :clinicalStatus and o.condition.coded.conceptId = :conceptId order by o.dateCreated desc")
+		            "select count(o) from Condition o where o.patient.uuid = :patientUuid and o.clinicalStatus = :clinicalStatus and o.condition.coded.uuid = :conceptId order by o.dateCreated desc")
 		        .setParameter("patientUuid", patientUuid).setParameter("clinicalStatus", ConditionClinicalStatus.ACTIVE)
+		        .setParameter("conceptId", conceptId).uniqueResult();
+		return count > 0;
+		
+	}
+	
+	@Override
+	public boolean existOrderByPatientUuidAndConceptId(String patientUuid, Integer conceptId) {
+		Long count = (Long) getCurrentSession()
+		        .createQuery(
+		            "select count(o) from Order o where o.patient.uuid = :patientUuid and o.concept.id = :conceptId and o.action != :orderAction and o.dateStopped is null order by o.dateActivated desc")
+		        .setParameter("patientUuid", patientUuid).setParameter("orderAction", Order.Action.DISCONTINUE)
 		        .setParameter("conceptId", conceptId).uniqueResult();
 		return count > 0;
 		

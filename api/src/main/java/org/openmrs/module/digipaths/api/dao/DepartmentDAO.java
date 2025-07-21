@@ -35,5 +35,7 @@ public interface DepartmentDAO {
 	
 	List<Obs> getObsByPatientUuidAndConceptUuid(String patientUuid, String conceptUuid, Integer maxResults);
 	
-	boolean getConditionByPatientUuidAndConceptId(String patientUuid, Integer conceptUuid);
+	boolean getConditionByPatientUuidAndConceptUuid(String patientUuid, String conceptUuid);
+	
+	boolean existOrderByPatientUuidAndConceptId(String patientUuid, Integer conceptUuid);
 }
