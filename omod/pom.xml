@@ -50,7 +50,17 @@
 			<classifier>tests</classifier>
 			<scope>test</scope>
 		</dependency>
-</dependencies>
+		<dependency>
+			<groupId>org.openmrs.module</groupId>
+			<artifactId>patientflags-api</artifactId>
+			<type>jar</type>
+		</dependency>
+		<dependency>
+			<groupId>org.openmrs.module</groupId>
+			<artifactId>fhir2-api</artifactId>
+			<type>jar</type>
+		</dependency>
+	</dependencies>
 
 	<build>
 		<finalName>${project.parent.artifactId}-${project.parent.version}</finalName>

@@ -56,6 +56,25 @@
         </property>
     </bean>
 
+    <bean id="orderServiceAdvice" class="org.openmrs.module.digipaths.web.advice.OrderServiceAdvice"/>
+    <aop:config>
+        <aop:pointcut id="orderPoint"
+                      expression="execution(* org.openmrs.api.OrderService.*(..))" />
+
+        <aop:advisor advice-ref="orderServiceAdvice"
+                     pointcut-ref="orderPoint" />
+    </aop:config>
+
+    <bean id="conditionServiceAdvice" class="org.openmrs.module.digipaths.web.advice.ConditionServiceAdvice"/>
+    <aop:config>
+        <aop:pointcut id="fhirConditionPoint"
+                      expression="execution(* org.openmrs.module.fhir2.api.FhirConditionService.*(..))" />
+
+        <aop:advisor advice-ref="conditionServiceAdvice"
+                     pointcut-ref="fhirConditionPoint" />
+    </aop:config>
+
+<!--    <bean id="encounterServiceAdvice" class="org.openmrs.module.digipaths.web.advice.EncounterServiceAdvice"/>-->
 
     <bean parent="serviceContext">
         <property name="moduleService">

@@ -10,7 +10,6 @@ import org.openmrs.module.digipaths.api.DepartmentService;
 import org.openmrs.module.digipaths.api.dao.DepartmentDAO;
 
 import java.util.List;
-import java.util.Optional;
 
 ///**
 // * It is a default implementation of {@link DepartmentService}.
@@ -78,12 +77,22 @@ public class DepartmentServiceImpl extends BaseOpenmrsService implements Departm
 	}
 	
 	@Override
-	public boolean getConditionByPatientUuidAndConceptUuid(String patientUuid, String conceptUuid) {
-		return dao.getConditionByPatientUuidAndConceptUuid(patientUuid, conceptUuid);
+	public boolean existConditionByPatientUuidAndConceptUuid(String patientUuid, String conceptUuid) {
+		return dao.existConditionByPatientUuidAndConceptUuid(patientUuid, conceptUuid);
 	}
 	
 	@Override
 	public boolean existOrderByPatientUuidAndConceptId(String patientUuid, Integer conceptUuid) {
 		return dao.existOrderByPatientUuidAndConceptId(patientUuid, conceptUuid);
+	}
+	
+	@Override
+	public boolean existObsByPatientUuidAndConceptUuid(String patientUuid, String conceptUuid) {
+		return dao.existObsByPatientUuidAndConceptUuid(patientUuid, conceptUuid);
+	}
+	
+	@Override
+	public boolean existOrderByPatientUuidAndConceptUuid(String patientUuid, String conceptUuid) {
+		return dao.existOrderByPatientUuidAndConceptUuid(patientUuid, conceptUuid);
 	}
 }

@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 
@@ -120,7 +121,84 @@ public class RestController extends MainResourceController {
 		getHemoglobinAction(departmentService,patientUuid,list);
 		getAlbuminRatioAction(departmentService,patientUuid,list);
 		getSerumCreatinineAction(departmentService,patientUuid,list);
+		getPreEclampsiaAction(departmentService,patientUuid,list);
 		return list;
+	}
+	
+	public void getPreEclampsiaAction(DepartmentService departmentService, String patientUuid, List<Map<String, Object>> list) {
+		String LMP_UUID = "1427AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+		boolean matchedGestationalAge = isGestationalAgeAtLeast12Weeks(departmentService, patientUuid, LMP_UUID);
+		boolean foundRickFactors = hasAnyRiskFactors(departmentService, patientUuid);
+		
+		boolean hasActivePreeclampsia = departmentService.existConditionByPatientUuidAndConceptUuid(patientUuid,
+		    "129251AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+		boolean hasActiveEclampsia = departmentService.existConditionByPatientUuidAndConceptUuid(patientUuid,
+		    "118744AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+		
+		boolean hasActiveAspirinTherapy = departmentService.existOrderByPatientUuidAndConceptUuid(patientUuid,
+		    "71617AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+		
+		System.out.println(" hasActivePreeclampsia " + hasActivePreeclampsia + hasActiveEclampsia + hasActiveAspirinTherapy);
+		
+		if (matchedGestationalAge && foundRickFactors && !(hasActivePreeclampsia || hasActiveEclampsia)
+		        && !hasActiveAspirinTherapy)
+			list.add(getDigipathsRow(
+			    new Date(),
+			    "Pre-eclampsia risk",
+			    "<p>This patient is at increased risk of developing pre-eclampsia.\n"
+			            + "Their diabetes can contribute to this increased risk.\n"
+			            + "Please review the patient’s history and consider initiating low-dose aspirin 75–150 mg once daily from now until delivery, in line with antenatal care guidelines.</p>"));
+		
+	}
+	
+	public boolean isGestationalAgeAtLeast12Weeks(DepartmentService departmentService, String patientUuid, String conceptUuid) {
+		
+		List<Obs> obsList = departmentService.getObsByPatientUuidAndConceptUuid(patientUuid, conceptUuid, 1);
+		
+		if (obsList.isEmpty() || obsList.get(0).getValueDatetime() == null)
+			return false;
+		
+		LocalDate lmpDate = obsList.get(0).getValueDatetime().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+		
+		if (lmpDate == null || lmpDate.isAfter(LocalDate.now()))
+			return false;
+		
+		long daysBetween = ChronoUnit.DAYS.between(lmpDate, LocalDate.now());
+		long weeks = daysBetween / 7;
+		return weeks >= 12;
+	}
+	
+	public boolean hasAnyRiskFactors(DepartmentService departmentService, String patientUuid) {
+		boolean isFetusesMoreThanOne = hasFetusesMoreThanOne(departmentService, patientUuid);
+		boolean pastPreEclampsia = departmentService.existObsByPatientUuidAndConceptUuid(patientUuid,
+		    "160654AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+		boolean pastEclampsia = departmentService.existObsByPatientUuidAndConceptUuid(patientUuid,
+		    "160655AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+		
+		boolean hasDiabetes = departmentService.existObsByPatientUuidAndConceptUuid(patientUuid,
+		    "119481AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+		boolean hasHypertension = departmentService.existObsByPatientUuidAndConceptUuid(patientUuid,
+		    "117399AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+		boolean hasKidneyDisease = departmentService.existObsByPatientUuidAndConceptUuid(patientUuid,
+		    "165570AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+		boolean hasAutoimmuneDisease = departmentService.existObsByPatientUuidAndConceptUuid(patientUuid,
+		    "112476AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+		
+		System.out.println(" " + isFetusesMoreThanOne + pastPreEclampsia + pastEclampsia + hasDiabetes + hasHypertension
+		        + hasKidneyDisease + hasAutoimmuneDisease);
+		
+		return isFetusesMoreThanOne || pastPreEclampsia || pastEclampsia || hasAutoimmuneDisease || hasDiabetes
+		        || hasHypertension || hasKidneyDisease;
+	}
+	
+	public boolean hasFetusesMoreThanOne(DepartmentService departmentService, String patientUuid) {
+		String NumberOfFetusesDetectedOnUltrasoundUuid = "165387AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+		List<Obs> obsList = departmentService.getObsByPatientUuidAndConceptUuid(patientUuid,
+		    NumberOfFetusesDetectedOnUltrasoundUuid, 1);
+		
+		if (obsList.isEmpty() || obsList.get(0).getValueNumeric() == null)
+			return false;
+		return obsList.get(0).getValueNumeric() >= 2;
 	}
 	
 	public void getHemoglobinAction(DepartmentService departmentService, String patientUuid, List<Map<String,Object>> list) {
@@ -171,14 +249,15 @@ public class RestController extends MainResourceController {
 	
 	public boolean existDiabetes(DepartmentService departmentService, String patientUuid) {
 		String diabetesUuid = "119481AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
-		return departmentService.getConditionByPatientUuidAndConceptUuid(patientUuid, diabetesUuid);
+		return departmentService.existConditionByPatientUuidAndConceptUuid(patientUuid, diabetesUuid);
 	}
 	
 	public boolean existType2Diabetes(DepartmentService departmentService, String patientUuid) {
 		String TBD2_Name = "Diabetes mellitus, type 2";
 		ConceptService conceptService = Context.getService(ConceptService.class);
 		Concept concept = conceptService.getConceptByName(TBD2_Name);
-		return concept != null && departmentService.getConditionByPatientUuidAndConceptUuid(patientUuid, concept.getUuid());
+		return concept != null
+		        && departmentService.existConditionByPatientUuidAndConceptUuid(patientUuid, concept.getUuid());
 	}
 	
 	public void getSerumCreatinineAction(DepartmentService departmentService, String patientUuid,
@@ -186,7 +265,7 @@ public class RestController extends MainResourceController {
 		String serumCreatinine = "790AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
 		String ckdUuid = "145438AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
 		
-		boolean existCKD = departmentService.getConditionByPatientUuidAndConceptUuid(patientUuid, ckdUuid);
+		boolean existCKD = departmentService.existConditionByPatientUuidAndConceptUuid(patientUuid, ckdUuid);
 		
 		List<Obs> obsList = departmentService.getObsByPatientUuidAndConceptUuid(patientUuid, serumCreatinine, 5);
 		PatientService patientService = Context.getService(PatientService.class);

@@ -107,12 +107,12 @@ public class HibernateDepartmentDAO implements DepartmentDAO {
 	}
 	
 	@Override
-	public boolean getConditionByPatientUuidAndConceptUuid(String patientUuid, String conceptId) {
+	public boolean existConditionByPatientUuidAndConceptUuid(String patientUuid, String conceptId) {
 		Long count = (Long) getCurrentSession()
 		        .createQuery(
-		            "select count(o) from Condition o where o.patient.uuid = :patientUuid and o.clinicalStatus = :clinicalStatus and o.condition.coded.uuid = :conceptId order by o.dateCreated desc")
+		            "select count(o) from Condition o where o.patient.uuid = :patientUuid and o.clinicalStatus = :clinicalStatus and o.voided = : voided and o.condition.coded.uuid = :conceptId order by o.dateCreated desc")
 		        .setParameter("patientUuid", patientUuid).setParameter("clinicalStatus", ConditionClinicalStatus.ACTIVE)
-		        .setParameter("conceptId", conceptId).uniqueResult();
+		        .setParameter("voided", false).setParameter("conceptId", conceptId).uniqueResult();
 		return count > 0;
 		
 	}
@@ -126,6 +126,26 @@ public class HibernateDepartmentDAO implements DepartmentDAO {
 		        .setParameter("conceptId", conceptId).uniqueResult();
 		return count > 0;
 		
+	}
+	
+	@Override
+	public boolean existObsByPatientUuidAndConceptUuid(String patientUuid, String conceptUuid) {
+		Long count = (Long) getCurrentSession()
+		        .createQuery(
+		            "select count(o) from Obs o where o.person.uuid = :patientUuid and o.concept.uuid = :conceptUuid")
+		        .setParameter("patientUuid", patientUuid).setParameter("conceptUuid", conceptUuid).uniqueResult();
+		return count > 0;
+		
+	}
+	
+	@Override
+	public boolean existOrderByPatientUuidAndConceptUuid(String patientUuid, String conceptUuid) {
+		Long count = (Long) getCurrentSession()
+		        .createQuery(
+		            "select count(o) from Order o where o.patient.uuid = :patientUuid and o.concept.uuid = :conceptUuid and o.action != :orderAction and o.dateStopped is null order by o.dateActivated desc")
+		        .setParameter("patientUuid", patientUuid).setParameter("orderAction", Order.Action.DISCONTINUE)
+		        .setParameter("conceptUuid", conceptUuid).uniqueResult();
+		return count > 0;
 	}
 	
 }

@@ -5,9 +5,7 @@ import org.openmrs.Order;
 import org.openmrs.api.OpenmrsService;
 import org.openmrs.module.digipaths.Department;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.List;
-import java.util.Optional;
 
 /**
  * The service for managing departments.
@@ -51,7 +49,12 @@ public interface DepartmentService extends OpenmrsService {
 	
 	List<Obs> getObsByPatientUuidAndConceptUuid(String patientUuid, String conceptUuid, Integer maxResults);
 	
-	boolean getConditionByPatientUuidAndConceptUuid(String patientUuid, String conceptUuid);
+	boolean existConditionByPatientUuidAndConceptUuid(String patientUuid, String conceptUuid);
 	
 	boolean existOrderByPatientUuidAndConceptId(String patientUuid, Integer conceptUuid);
+	
+	boolean existObsByPatientUuidAndConceptUuid(String patientUuid, String conceptUuid);
+	
+	boolean existOrderByPatientUuidAndConceptUuid(String patientUuid, String conceptUuid);
+	
 }
